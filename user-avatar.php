@@ -561,8 +561,8 @@ function user_avatar_fetch_avatar( $args = '' ) {
 	$params = wp_parse_args( $args, $defaults );
 	extract( $params, EXTR_SKIP );
 
-	$avatar_folder_dir = USER_AVATAR_UPLOAD_PATH."{$item_id}/";
-	$avatar_folder_url = USER_AVATAR_URL."{$item_id}";
+	$avatar_folder_dir = USER_AVATAR_UPLOAD_PATH;
+	$avatar_folder_url = USER_AVATAR_URL;
 	
 	if($width > 50)
 		$type = "full";
@@ -601,15 +601,11 @@ function user_avatar_fetch_avatar( $args = '' ) {
 	
 	if( $avatar_img = user_avatar_avatar_exists( $item_id ) ):
 		
-		$avatar_src = get_site_url()."/wp-content/uploads/avatars/".$item_id."/".$avatar_img;
-		if(function_exists('is_subdomain_install') && !is_subdomain_install())
-			$avatar_src = "/wp-content/uploads/avatars/".$item_id."/".$avatar_img;
+		$avatar_src = $avatar_folder_url.'/'.$item_id."/".$avatar_img;
 		
-		$avatar_folder_dir = USER_AVATAR_UPLOAD_PATH."{$item_id}/";
+		$file_time = filemtime ($avatar_folder_dir."/".$item_id."/".$avatar_img);
 		
-		$file_time = filemtime ($avatar_folder_dir."/".$avatar_img);
-		
-		$avatar_url = plugins_url('/user-avatar/user-avatar-pic.php')."?src=".$avatar_src ."&w=".$width."&id=".$item_id."&random=".$file_time;
+		$avatar_url = $avatar_src . '?' .$file_time;
 		
 		// Return it wrapped in an <img> element
 		if ( true === $html ) { // this helps validate stuff
