@@ -30,8 +30,13 @@ add_action('wp_ajax_user_avatar_add_photo', 'user_avatar_add_photo');
 add_action('user_avatar_iframe_head','user_avatar_init');
 
 
-add_action('admin_print_styles-user-edit.php', 'user_avatar_admin_print_styles');
-add_action('admin_print_styles-profile.php', 'user_avatar_admin_print_styles');
+if (is_admin()) {
+	add_action('admin_print_styles-user-edit.php', 'user_avatar_admin_print_styles');
+	add_action('admin_print_styles-profile.php', 'user_avatar_admin_print_styles');
+}
+else {
+	add_action('init', 'user_avatar_admin_print_styles');
+}
 function user_avatar_admin_print_styles() {
 	global $hook_suffix;
 	wp_enqueue_script("thickbox");
@@ -115,10 +120,13 @@ function user_avatar_core_set_avatar_constants() {
  */
 function user_avatar_core_avatar_upload_path()
 {
-	if( !file_exists(WP_CONTENT_DIR."/uploads/avatars/") )
-		mkdir(WP_CONTENT_DIR."/uploads/avatars/", 0777 ,true);
+	$upload_dir_info = wp_upload_dir();
+	$directory = apply_filters('user-avatar-upload-dir', trailingslashit($upload_dir_info['basedir']).'avatars/');
 	
-	return WP_CONTENT_DIR."/uploads/avatars/";
+	if( !file_exists($directory) )
+		mkdir($directory, 0777 ,true);
+	
+	return $directory;
 }
 
 /**
@@ -128,8 +136,10 @@ function user_avatar_core_avatar_upload_path()
  * @return void
  */
 function user_avatar_core_avatar_url()
-{	
-	return WP_CONTENT_URL."/uploads/avatars/";
+{
+	$upload_dir_info = wp_upload_dir();
+	$url = apply_filters('user-avatar-upload-url', trailingslashit($upload_dir_info['baseurl']).'avatars/');
+	return $url;
 }
 
 /**
@@ -647,6 +657,15 @@ function user_avatar_delete(){
 function user_avatar_form($profile)
 {
 	global $current_user;
+	
+	if (!$profile) {
+		global $wp_query;
+		$author_id = get_query_var('author');
+		if ($author_id) {
+			$profile = new stdClass();
+			$profile->ID = $author_id;
+		}
+	}
 	
 	// Check if it is current user or super admin role
 	if(($profile->ID == $current_user->ID || is_super_admin($current_user->ID))) 
