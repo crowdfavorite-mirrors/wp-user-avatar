@@ -630,7 +630,7 @@ function user_avatar_delete(){
 		$current_user = wp_get_current_user();
 		
 		// If user clicks the remove avatar button, in URL deleter_avatar=true
-		if(wp_verify_nonce($_GET['_nononce'], 'user_avatar') && ( $_GET['user_id'] == $current_user->id || current_user_can('edit_users')) )
+		if(wp_verify_nonce($_GET['_nonce'], 'user_avatar') && ( $_GET['user_id'] == $current_user->id || current_user_can('edit_users')) )
 		{
 			$user_id = $_GET['user_id'];
 				
@@ -672,13 +672,6 @@ function user_avatar_form($profile = null)
 	<a id="user-avatar-link" class="button-primary thickbox" href="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=1&uid=<?php echo $profile->ID; ?>&TB_iframe=true&width=720&height=450" title="<?php _e('Upload and Crop an Image to be Displayed','user-avatar'); ?>" ><?php _e('Update Picture','user-avatar'); ?></a> 
 	
 	<?php 
-		// Remove the User-Avatar button if there is no uploaded image
-		
-		//if(isset($_GET['user_id'])):
-		//	$remove_url = admin_url('user-edit.php')."?user_id=".$_GET['user_id']."&delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
-		//else:
-		//	$remove_url = admin_url('profile.php')."?delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
-		
 		$remove_url = admin_url('admin-ajax.php');
 		$remove_url = add_query_arg(array(
 			'action' => 'user-avatar-delete',
@@ -686,7 +679,6 @@ function user_avatar_form($profile = null)
 			'_nonce' => wp_create_nonce('user_avatar')
 		), $remove_url);
 		
-		endif;
 		if ( user_avatar_avatar_exists($profile->ID) ):?>
 			<a id="user-avatar-remove" class="submitdelete deleteaction" href="<?php echo esc_url_raw($remove_url); ?>" title="<?php _e('Remove User Avatar Image','user-avatar'); ?>" ><?php _e('Remove','user-avatar'); ?></a>
 			<?php
