@@ -618,6 +618,7 @@ function user_avatar_fetch_avatar( $args = '' ) {
 		return false;
 	endif;
 }
+
 add_action("admin_init", "user_avatar_delete");
 /**
  * user_avatar_delete function.
@@ -626,23 +627,20 @@ add_action("admin_init", "user_avatar_delete");
  * @return void
  */
 function user_avatar_delete(){
-		
-		global $pagenow;
-		
 		$current_user = wp_get_current_user();
 		
 		// If user clicks the remove avatar button, in URL deleter_avatar=true
-		if( isset($_GET['delete_avatar']) && wp_verify_nonce($_GET['_nononce'], 'user_avatar') && ( $_GET['u'] == $current_user->id || current_user_can('edit_users')) )
+		if(wp_verify_nonce($_GET['_nononce'], 'user_avatar') && ( $_GET['user_id'] == $current_user->id || current_user_can('edit_users')) )
 		{
 			$user_id = $_GET['user_id'];
-			if(is_numeric($user_id))
-				$user_id = "?user_id=".$user_id;
 				
-			user_avatar_delete_files($_GET['u']);
-			wp_redirect(get_option('siteurl') . '/wp-admin/'.$pagenow.$user_id);
-			
-		}		
+			user_avatar_delete_files($user_id);
+			wp_redirect($_SERVER['HTTP_REFERER']);
+		}
+		exit();
 }
+add_action('wp_ajax_user-avatar-delete', 'user_avatar_delete');
+
 /**
  * user_avatar_form function.
  * Description: Creation and calling of appropriate functions on the overlay form. 
@@ -676,10 +674,17 @@ function user_avatar_form($profile = null)
 	<?php 
 		// Remove the User-Avatar button if there is no uploaded image
 		
-		if(isset($_GET['user_id'])):
-			$remove_url = admin_url('user-edit.php')."?user_id=".$_GET['user_id']."&delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
-		else:
-			$remove_url = admin_url('profile.php')."?delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
+		//if(isset($_GET['user_id'])):
+		//	$remove_url = admin_url('user-edit.php')."?user_id=".$_GET['user_id']."&delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
+		//else:
+		//	$remove_url = admin_url('profile.php')."?delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
+		
+		$remove_url = admin_url('admin-ajax.php');
+		$remove_url = add_query_arg(array(
+			'action' => 'user-avatar-delete',
+			'user_id' => $profile->ID,
+			'_nonce' => wp_create_nonce('user_avatar')
+		), $remove_url);
 		
 		endif;
 		if ( user_avatar_avatar_exists($profile->ID) ):?>
