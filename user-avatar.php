@@ -3,7 +3,7 @@
 Plugin Name: User Avatar ** Crowd Favorite Modified **
 Plugin URI: http://wordpress.org/extend/plugins/user-avatar/
 Description: Allows users to associate photos with their accounts by accessing their "Your Profile" page that default as Gravatar or WordPress Default image (from Discussion Page). This plugin has been modified by Crowd Favorite. Do not update directly from source.
-Version: 1.5.3(CF)
+Version: 1.5.4(CF)
 Author: Enej Bajgoric / Gagan Sandhu / CTLT DEV
 
 
@@ -619,7 +619,6 @@ function user_avatar_fetch_avatar( $args = '' ) {
 	endif;
 }
 
-add_action("admin_init", "user_avatar_delete");
 /**
  * user_avatar_delete function.
  * 
