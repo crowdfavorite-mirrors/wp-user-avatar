@@ -619,7 +619,6 @@ function user_avatar_fetch_avatar( $args = '' ) {
 	endif;
 }
 
-add_action("admin_init", "user_avatar_delete");
 /**
  * user_avatar_delete function.
  * 
