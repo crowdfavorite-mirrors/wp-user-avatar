@@ -3,7 +3,7 @@
 Plugin Name: User Avatar ** Crowd Favorite Modified **
 Plugin URI: http://wordpress.org/extend/plugins/user-avatar/
 Description: Allows users to associate photos with their accounts by accessing their "Your Profile" page that default as Gravatar or WordPress Default image (from Discussion Page). This plugin has been modified by Crowd Favorite. Do not update directly from source.
-Version: 1.5.2(CF)
+Version: 1.5.3(CF)
 Author: Enej Bajgoric / Gagan Sandhu / CTLT DEV
 
 
@@ -618,6 +618,7 @@ function user_avatar_fetch_avatar( $args = '' ) {
 		return false;
 	endif;
 }
+
 add_action("admin_init", "user_avatar_delete");
 /**
  * user_avatar_delete function.
@@ -626,23 +627,20 @@ add_action("admin_init", "user_avatar_delete");
  * @return void
  */
 function user_avatar_delete(){
-		
-		global $pagenow;
-		
 		$current_user = wp_get_current_user();
 		
 		// If user clicks the remove avatar button, in URL deleter_avatar=true
-		if( isset($_GET['delete_avatar']) && wp_verify_nonce($_GET['_nononce'], 'user_avatar') && ( $_GET['u'] == $current_user->id || current_user_can('edit_users')) )
+		if(wp_verify_nonce($_GET['_nonce'], 'user_avatar') && ( $_GET['user_id'] == $current_user->id || current_user_can('edit_users')) )
 		{
 			$user_id = $_GET['user_id'];
-			if(is_numeric($user_id))
-				$user_id = "?user_id=".$user_id;
 				
-			user_avatar_delete_files($_GET['u']);
-			wp_redirect(get_option('siteurl') . '/wp-admin/'.$pagenow.$user_id);
-			
-		}		
+			user_avatar_delete_files($user_id);
+			wp_redirect($_SERVER['HTTP_REFERER']);
+		}
+		exit();
 }
+add_action('wp_ajax_user-avatar-delete', 'user_avatar_delete');
+
 /**
  * user_avatar_form function.
  * Description: Creation and calling of appropriate functions on the overlay form. 
@@ -674,14 +672,13 @@ function user_avatar_form($profile = null)
 	<a id="user-avatar-link" class="button-primary thickbox" href="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=1&uid=<?php echo $profile->ID; ?>&TB_iframe=true&width=720&height=450" title="<?php _e('Upload and Crop an Image to be Displayed','user-avatar'); ?>" ><?php _e('Update Picture','user-avatar'); ?></a> 
 	
 	<?php 
-		// Remove the User-Avatar button if there is no uploaded image
+		$remove_url = admin_url('admin-ajax.php');
+		$remove_url = add_query_arg(array(
+			'action' => 'user-avatar-delete',
+			'user_id' => $profile->ID,
+			'_nonce' => wp_create_nonce('user_avatar')
+		), $remove_url);
 		
-		if(isset($_GET['user_id'])):
-			$remove_url = admin_url('user-edit.php')."?user_id=".$_GET['user_id']."&delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
-		else:
-			$remove_url = admin_url('profile.php')."?delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
-		
-		endif;
 		if ( user_avatar_avatar_exists($profile->ID) ):?>
 			<a id="user-avatar-remove" class="submitdelete deleteaction" href="<?php echo esc_url_raw($remove_url); ?>" title="<?php _e('Remove User Avatar Image','user-avatar'); ?>" ><?php _e('Remove','user-avatar'); ?></a>
 			<?php
